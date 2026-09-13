@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GENESIS LAB — Entomology Archive</title>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.3.1/dist/model-viewer.min.js"></script>
+  <style>
+    :root {
+      --bg: #07110d;
+      --bg-2: #0d1814;
+      --line: rgba(180, 220, 185, 0.16);
+      --text: #edf5ef;
+      --muted: rgba(237, 245, 239, 0.7);
+      --lime: #c9ff72;
+      --sage: #6f9d78;
+      --stone: #d7e0d4;
+      --panel: rgba(11, 18, 15, 0.84);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 50% 24%, rgba(201,255,114,.08), transparent 18%),
+        radial-gradient(circle at 18% 18%, rgba(111,157,120,.18), transparent 22%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      color: var(--text);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 72px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: rgba(7,7,7,.72);
+      backdrop-filter: blur(18px);
+      z-index: 50;
+    }
+
+    .brand { font-size: 12px; letter-spacing: 4px; text-transform: uppercase; opacity: .9; }
+    .brand b { color: var(--lime); }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: .7;
+    }
+
+    .live { display: flex; align-items: center; gap: 8px; }
+    .live i {
+      display: block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 10px rgba(213,255,77,.8);
+    }
+
+    .main {
+      min-height: 100vh;
+      padding: 96px 32px 32px;
+    }
+
+    .hero-wrap {
+      width: min(1280px, 92vw);
+      margin: 0 auto;
+    }
+
+    .hero {
+      height: min(78vh, 820px);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .model-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)),
+        radial-gradient(circle at 50% 50%, rgba(201,255,114,.07), transparent 42%),
+        #0b120f;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 35px 90px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .model-shell::before,
+    .model-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .model-shell::before {
+      display: none;
+    }
+
+    .model-shell::after {
+      display: none;
+    }
+
+    .model-box {
+      position: absolute;
+      inset: 18px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    .model-box model-viewer {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
+      --progress-bar-color: #c9ff72;
+      --progress-mask: rgba(255,255,255,.12);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .title-badge {
+      position: absolute;
+      left: 32px;
+      top: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .kicker {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .name {
+      font-size: clamp(28px, 3vw, 54px);
+      letter-spacing: -1.5px;
+      font-weight: 500;
+    }
+
+    .meta-badge {
+      position: absolute;
+      right: 32px;
+      top: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(10, 15, 12, 0.7);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(12px);
+    }
+
+    .meta-badge span { color: var(--lime); }
+
+    .nav-btns {
+      position: absolute;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 4;
+      pointer-events: auto;
+    }
+
+    .nav-btn {
+      background: rgba(11, 18, 15, 0.9);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 12px 18px;
+      min-width: 130px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: .2s ease;
+    }
+
+    .nav-btn:hover {
+      border-color: rgba(213,255,77,.45);
+      color: var(--lime);
+      transform: translateY(-1px);
+    }
+
+    .info-panel {
+      width: min(1280px, 92vw);
+      margin: 30px auto 90px;
+      background: rgba(10, 18, 15, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 22px 60px rgba(0,0,0,0.18);
+    }
+
+    .info-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(201,255,114,.08), transparent 35%, transparent 65%, rgba(201,255,114,.04));
+      pointer-events: none;
+    }
+
+    .info-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .info-name {
+      font-size: clamp(34px, 4vw, 60px);
+      letter-spacing: -1.2px;
+      line-height: 1.05;
+    }
+
+    .info-type {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--lime);
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(201,255,114,0.06);
+    }
+
+    .slide {
+      display: none;
+      position: relative;
+      z-index: 1;
+      animation: fadeIn .35s ease;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .description {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.8;
+      max-width: 900px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 26px;
+    }
+
+    .stat {
+      padding: 18px 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 28px;
+      position: relative;
+      z-index: 1;
+      gap: 16px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--stone);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .slide-nav {
+      display: flex;
+      gap: 10px;
+    }
+
+    .mini-btn {
+      background: rgba(11, 18, 15, 0.9);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 11px 18px;
+      cursor: pointer;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width:760px){
+      header { padding: 0 18px; }
+      .brand { font-size: 10px; letter-spacing: 2px; }
+      .status { font-size: 9px; gap: 10px; }
+      .main { padding: 84px 18px 22px; }
+      .hero { height: 72vh; }
+      .model-shell { border-radius: 20px; }
+      .title-badge { left: 18px; top: 18px; }
+      .meta-badge { right: 18px; top: 18px; padding: 8px 10px; font-size: 9px; }
+      .nav-btns { bottom: 18px; gap: 8px; }
+      .nav-btn { min-width: 110px; padding: 10px 12px; font-size: 9px; }
+      .info-panel { padding: 20px; }
+      .info-head { display: block; }
+      .info-type { display: inline-block; margin-top: 16px; }
+      .stats { grid-template-columns: 1fr; }
+      .bottom-nav { display: block; }
+      .slide-nav { margin-top: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand"><b>Genesis</b> Lab</div>
+    <div class="status">
+      <span>Interactive model</span>
+      <div class="live"><i></i> <span id="topCount">01</span>/04</div>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="hero-wrap">
+      <div class="hero">
+        <div class="model-shell">
+          <div class="overlay">
+            <div class="title-badge">
+              <div class="kicker">Specimen</div>
+              <div class="name" id="specName">Butterfly</div>
+            </div>
+            <div class="meta-badge">Model <span id="specNum">01</span>/04</div>
+          </div>
+
+          <div class="model-box" id="modelBox"></div>
+
+          <div class="nav-btns">
+            <button class="nav-btn" type="button" onclick="move(-1)">← Previous</button>
+            <button class="nav-btn" type="button" onclick="move(1)">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-panel">
+      <div class="info-head">
+        <div>
+          <div class="eyebrow">Specimen profile</div>
+          <div class="info-name" id="infoName">Butterfly</div>
+        </div>
+        <div class="info-type" id="infoType">Lepidoptera</div>
+      </div>
+
+      <div id="slideContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    const insectData = [
+      {
+        name: 'Butterfly',
+        type: 'Lepidoptera',
+        slides: [
+          {
+            description: 'Butterflies are winged pollinators whose vibrant patterns are used for signaling, camouflage, and species recognition. Their flight is light, precise, and highly adaptive to changing environments.',
+            stats: [
+              ['Habitat', 'Meadows, gardens, forests'],
+              ['Lifecycle', 'Complete metamorphosis'],
+              ['Role', 'Pollinator']
+            ],
+            tags: ['Pollination', 'Flight', 'Metamorphosis']
+          },
+          {
+            description: 'The butterfly’s wing structure is built for efficiency. Scales create color, reflect light, and help regulate temperature while allowing the insect to hover and steer with remarkable control.',
+            stats: [
+              ['Wing Scale', 'Microscopic structural layers'],
+              ['Movement', 'Directional hover flight'],
+              ['Defense', 'Camouflage and mimicry']
+            ],
+            tags: ['Coloration', 'Adaptation', 'Survival']
+          },
+          {
+            description: 'In ecosystems, butterflies are sensitive indicators of environmental health. Their presence reflects habitat quality, climate stability, and floral diversity across large landscapes.',
+            stats: [
+              ['Indicator', 'Biodiversity health'],
+              ['Distribution', 'Global temperate zones'],
+              ['Diet', 'Nectar and host plants']
+            ],
+            tags: ['Ecology', 'Climate', 'Habitat']
+          }
+        ]
+      },
+      {
+        name: 'Honey Bee',
+        type: 'Apis Mellifera',
+        slides: [
+          {
+            description: 'Honey bees are fundamental pollinators, moving pollen between flowers and supporting crop production and plant reproduction across ecosystems.',
+            stats: [
+              ['Pollination', 'Essential for crops'],
+              ['Hive', 'Highly organized colony'],
+              ['Memory', 'Navigation and orientation']
+            ],
+            tags: ['Pollinator', 'Hive', 'Agriculture']
+          },
+          {
+            description: 'Their waggle dance is one of the most refined forms of non-human communication, guiding nest mates to high-value flower sources with surprising precision.',
+            stats: [
+              ['Communication', 'Dance language'],
+              ['Foraging', 'Distance and direction'],
+              ['Workers', 'Specialized tasks']
+            ],
+            tags: ['Communication', 'Foraging', 'Dance']
+          },
+          {
+            description: 'The bee colony is a highly disciplined system where worker bees divide labor to support brood care, nectar collection, wax building, and hive protection.',
+            stats: [
+              ['Workers', 'Task-based roles'],
+              ['Storage', 'Honey and pollen'],
+              ['Defense', 'Guard behavior']
+            ],
+            tags: ['Colony', 'Defense', 'Efficiency']
+          }
+        ]
+      },
+      {
+        name: 'Rhino Beetle',
+        type: 'Dynastinae',
+        slides: [
+          {
+            description: 'Rhino beetles are armored insects known for their horn-like projections and exceptionally durable exoskeletons. Their body design is built for strength as much as display.',
+            stats: [
+              ['Defense', 'Thick exoskeleton'],
+              ['Diet', 'Plant material'],
+              ['Appearance', 'Horned head crest']
+            ],
+            tags: ['Armor', 'Strength', 'Forest']
+          },
+          {
+            description: 'These beetles often live in forest or tropical habitats where their size and robustness help them survive predation and navigate dense plant environments.',
+            stats: [
+              ['Habitat', 'Tropical and forest'],
+              ['Movement', 'Heavy but efficient'],
+              ['Life cycle', 'Larval development underground']
+            ],
+            tags: ['Habitat', 'Lifecycle', 'Survival']
+          },
+          {
+            description: 'Rhino beetles are admired for their sculptural forms, a blend of biology and natural engineering that makes them visually striking in both field and collection settings.',
+            stats: [
+              ['Display', 'Distinctive horn structure'],
+              ['Ecology', 'Decomposer interactions'],
+              ['Status', 'Collector interest']
+            ],
+            tags: ['Form', 'Biology', 'Collection']
+          }
+        ]
+      },
+      {
+        name: 'Praying Mantis',
+        type: 'Mantodea',
+        slides: [
+          {
+            description: 'Praying mantises are ambush predators recognized for their patient posture, forward-facing eyes, and extremely precise hunting technique.',
+            stats: [
+              ['Hunting', 'Ambush predator'],
+              ['Vision', 'High visual precision'],
+              ['Posture', 'Camouflage stance']
+            ],
+            tags: ['Predator', 'Vision', 'Camouflage']
+          },
+          {
+            description: 'Their front legs are adapted for gripping prey with remarkable speed, enabling effective strikes in a narrow window of opportunity.',
+            stats: [
+              ['Legs', 'Specialized grasping forelimbs'],
+              ['Speed', 'Rapid strike response'],
+              ['Survival', 'Predatory efficiency']
+            ],
+            tags: ['Strike', 'Predation', 'Movement']
+          },
+          {
+            description: 'Mantises are often used as examples of evolutionary precision, balancing predation, camouflage, and behavioral adaptation in highly specialized ecosystems.',
+            stats: [
+              ['Evolution', 'Specialized adaptations'],
+              ['Habitat', 'Gardens and shrubs'],
+              ['Behavior', 'Selective hunting']
+            ],
+            tags: ['Evolution', 'Behavior', 'Specialization']
+          }
+        ]
+      }
+    ];
+
+    const insects = [
+      { name: 'Butterfly', model: './assests/butterfly.glb' },
+      { name: 'Honey Bee', model: './assests/bee_converted.glb' },
+      { name: 'Rhino Beetle', model: './assests/a_rhino_beetle.glb' },
+      { name: 'Praying Mantis', model: './assests/mantis_religiosa_-_ct_scan.glb' }
+    ];
+
+    const modelBox = document.getElementById('modelBox');
+    let modelViewer = null;
+    let cur = 0;
+
+    function createViewer() {
+      if (modelViewer) {
+        modelViewer.remove();
+      }
+
+      modelViewer = document.createElement('model-viewer');
+      modelViewer.setAttribute('alt', '3D insect model');
+      modelViewer.setAttribute('camera-controls', '');
+      modelViewer.setAttribute('camera-orbit', '0deg 75deg 2.6m');
+      modelViewer.setAttribute('field-of-view', '24deg');
+      modelViewer.setAttribute('exposure', '1.2');
+      modelViewer.setAttribute('environment-image', 'neutral');
+      modelViewer.setAttribute('shadow-intensity', '1');
+      modelViewer.setAttribute('autoplay', '');
+      modelViewer.setAttribute('interaction-prompt', 'none');
+      modelBox.appendChild(modelViewer);
+    }
+
+    function renderSlide() {
+      const item = insectData[cur];
+      const slide = item.slides[0];
+      document.getElementById('slideContainer').innerHTML = `
+        <div class="slide active">
+          <p class="description">${slide.description}</p>
+          <div class="stats">
+            ${slide.stats.map(([label, value]) => `
+              <div class="stat">
+                <div class="stat-label">${label}</div>
+                <div class="stat-value">${value}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="bottom-nav">
+            <div class="pill-row">
+              ${slide.tags.map(tag => `<span class="pill">${tag}</span>`).join('')}
+            </div>
+            <div class="slide-nav">
+              <button class="mini-btn" type="button" onclick="move(-1)">Previous</button>
+              <button class="mini-btn" type="button" onclick="move(1)">Next</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('infoName').textContent = item.name;
+      document.getElementById('infoType').textContent = item.type;
+    }
+
+    function applyBeeColor() {
+      if (!modelViewer || !modelViewer.model) return;
+
+      const materials = modelViewer.model.materials || [];
+      materials.forEach((material) => {
+        if (!material || !material.pbrMetallicRoughness) return;
+
+        const name = (material.name || '').toLowerCase();
+
+        if (name.includes('wing') || name.includes('transparent')) {
+          material.pbrMetallicRoughness.baseColorFactor = [0.98, 0.99, 1.0, 0.78];
+          material.emissiveFactor = [0.04, 0.04, 0.05];
+          return;
+        }
+
+        if (name.includes('black') || name.includes('stripe') || name.includes('eye') || name.includes('antenna')) {
+          material.pbrMetallicRoughness.baseColorFactor = [0.08, 0.07, 0.06, 1.0];
+          material.emissiveFactor = [0.02, 0.02, 0.02];
+          return;
+        }
+
+        if (name.includes('body') || name.includes('abdomen') || name.includes('thorax') || name.includes('head') || name.includes('segment') || name.includes('leg')) {
+          material.pbrMetallicRoughness.baseColorFactor = [0.96, 0.75, 0.18, 1.0];
+          material.emissiveFactor = [0.08, 0.05, 0.02];
+          return;
+        }
+
+        material.pbrMetallicRoughness.baseColorFactor = [0.94, 0.72, 0.18, 1.0];
+        material.emissiveFactor = [0.08, 0.06, 0.02];
+      });
+
+      modelViewer.style.filter = 'brightness(1.18) saturate(1.4) contrast(1.08)';
+    }
+
+    function render() {
+      const item = insects[cur];
+      createViewer();
+      modelViewer.setAttribute('src', item.model + (item.model.includes('?') ? '&' : '?') + 'r=' + Date.now());
+      modelViewer.setAttribute('alt', item.name + ' 3D model');
+      modelViewer.setAttribute('camera-orbit', item.name === 'Honey Bee' ? '0deg 75deg 2.8m' : '0deg 75deg 2.6m');
+      modelViewer.style.filter = item.name === 'Honey Bee'
+        ? 'brightness(1.18) saturate(1.4) contrast(1.08)'
+        : 'none';
+
+      modelViewer.addEventListener('load', () => {
+        if (item.name === 'Honey Bee') applyBeeColor();
+      }, { once: true });
+
+      document.getElementById('specName').textContent = item.name;
+      document.getElementById('specNum').textContent = String(cur + 1).padStart(2, '0');
+      document.getElementById('topCount').textContent = String(cur + 1).padStart(2, '0');
+      document.querySelector('.meta-badge').innerHTML = `Model <span id="specNum">${String(cur + 1).padStart(2, '0')}</span>/${String(insects.length).padStart(2, '0')}`;
+      document.querySelector('.live').innerHTML = '<i></i> <span id="topCount">' + String(cur + 1).padStart(2, '0') + '</span>/' + String(insects.length).padStart(2, '0');
+      renderSlide();
+    }
+
+    function move(dir) {
+      cur = (cur + dir + insects.length) % insects.length;
+      render();
+    }
+
+    window.move = move;
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') move(1);
+      if (e.key === 'ArrowLeft') move(-1);
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -605,6 +605,8 @@
     function createViewer() {
       if (modelViewer) return;
 
+      // ensure the container is clean before creating a new viewer
+      modelBox.innerHTML = '';
       modelViewer = document.createElement('model-viewer');
       modelViewer.setAttribute('alt', '3D insect model');
       modelViewer.setAttribute('camera-controls', '');
@@ -685,28 +687,42 @@
     function render() {
       const item = insects[cur];
       const token = ++activeRenderToken;
-      createViewer();
-      modelViewer.setAttribute('alt', item.name + ' 3D model');
-      modelViewer.setAttribute('camera-orbit', item.name === 'Honey Bee' ? '0deg 75deg 2.8m' : '0deg 75deg 2.6m');
-      modelViewer.style.filter = item.name === 'Honey Bee'
-        ? 'brightness(1.18) saturate(1.4) contrast(1.08)'
-        : 'none';
 
       (async () => {
         try {
           const src = await prefetchModel(item.model);
           if (token !== activeRenderToken) return;
+          console.log('Rendering model:', cur, item.name, item.model, src);
+
+          // force recreate viewer to ensure new model is loaded
+          if (modelViewer) {
+            modelViewer.remove();
+            modelViewer = null;
+          }
+          createViewer();
+          modelViewer.setAttribute('alt', item.name + ' 3D model');
+          modelViewer.setAttribute('camera-orbit', item.name === 'Honey Bee' ? '0deg 75deg 2.8m' : '0deg 75deg 2.6m');
+          modelViewer.style.filter = item.name === 'Honey Bee'
+            ? 'brightness(1.18) saturate(1.4) contrast(1.08)'
+            : 'none';
           modelViewer.setAttribute('src', src);
+
+          modelViewer.addEventListener('load', () => {
+            if (token !== activeRenderToken) return;
+            console.log('Model loaded:', item.name);
+            if (item.name === 'Honey Bee') applyBeeColor();
+          }, { once: true });
         } catch (error) {
+          console.error('Model load failed:', item.model, error);
           if (token !== activeRenderToken) return;
+          if (modelViewer) {
+            modelViewer.remove();
+            modelViewer = null;
+          }
+          createViewer();
           modelViewer.setAttribute('src', item.model);
         }
       })();
-
-      modelViewer.addEventListener('load', () => {
-        if (token !== activeRenderToken) return;
-        if (item.name === 'Honey Bee') applyBeeColor();
-      }, { once: true });
 
       document.getElementById('specName').textContent = item.name;
       document.getElementById('specNum').textContent = String(cur + 1).padStart(2, '0');

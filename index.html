@@ -571,8 +571,36 @@
     ];
 
     const modelBox = document.getElementById('modelBox');
+    const modelCache = new Map();
     let modelViewer = null;
     let cur = 0;
+    let activeRenderToken = 0;
+
+    async function prefetchModel(modelPath) {
+      if (modelCache.has(modelPath)) {
+        return modelCache.get(modelPath);
+      }
+
+      const response = await fetch(modelPath, { cache: 'force-cache' });
+      if (!response.ok) {
+        throw new Error('Failed to load model: ' + modelPath);
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      modelCache.set(modelPath, objectUrl);
+      return objectUrl;
+    }
+
+    function preloadNearbyModels() {
+      const indexes = [cur, (cur + 1) % insects.length, (cur - 1 + insects.length) % insects.length];
+      indexes.forEach((index) => {
+        const path = insects[index].model;
+        if (!modelCache.has(path)) {
+          prefetchModel(path).catch(() => {});
+        }
+      });
+    }
 
     function createViewer() {
       if (modelViewer) return;
@@ -656,15 +684,27 @@
 
     function render() {
       const item = insects[cur];
+      const token = ++activeRenderToken;
       createViewer();
-      modelViewer.setAttribute('src', item.model);
       modelViewer.setAttribute('alt', item.name + ' 3D model');
       modelViewer.setAttribute('camera-orbit', item.name === 'Honey Bee' ? '0deg 75deg 2.8m' : '0deg 75deg 2.6m');
       modelViewer.style.filter = item.name === 'Honey Bee'
         ? 'brightness(1.18) saturate(1.4) contrast(1.08)'
         : 'none';
 
+      (async () => {
+        try {
+          const src = await prefetchModel(item.model);
+          if (token !== activeRenderToken) return;
+          modelViewer.setAttribute('src', src);
+        } catch (error) {
+          if (token !== activeRenderToken) return;
+          modelViewer.setAttribute('src', item.model);
+        }
+      })();
+
       modelViewer.addEventListener('load', () => {
+        if (token !== activeRenderToken) return;
         if (item.name === 'Honey Bee') applyBeeColor();
       }, { once: true });
 
@@ -678,6 +718,7 @@
 
     function move(dir) {
       cur = (cur + dir + insects.length) % insects.length;
+      preloadNearbyModels();
       render();
     }
 
@@ -688,6 +729,7 @@
       if (e.key === 'ArrowLeft') move(-1);
     });
 
+    preloadNearbyModels();
     render();
   </script>
 </body>

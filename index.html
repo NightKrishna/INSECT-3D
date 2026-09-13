@@ -575,9 +575,7 @@
     let cur = 0;
 
     function createViewer() {
-      if (modelViewer) {
-        modelViewer.remove();
-      }
+      if (modelViewer) return;
 
       modelViewer = document.createElement('model-viewer');
       modelViewer.setAttribute('alt', '3D insect model');
@@ -588,6 +586,7 @@
       modelViewer.setAttribute('environment-image', 'neutral');
       modelViewer.setAttribute('shadow-intensity', '1');
       modelViewer.setAttribute('autoplay', '');
+      modelViewer.setAttribute('loading', 'eager');
       modelViewer.setAttribute('interaction-prompt', 'none');
       modelBox.appendChild(modelViewer);
     }
@@ -658,7 +657,7 @@
     function render() {
       const item = insects[cur];
       createViewer();
-      modelViewer.setAttribute('src', item.model + (item.model.includes('?') ? '&' : '?') + 'r=' + Date.now());
+      modelViewer.setAttribute('src', item.model);
       modelViewer.setAttribute('alt', item.name + ' 3D model');
       modelViewer.setAttribute('camera-orbit', item.name === 'Honey Bee' ? '0deg 75deg 2.8m' : '0deg 75deg 2.6m');
       modelViewer.style.filter = item.name === 'Honey Bee'

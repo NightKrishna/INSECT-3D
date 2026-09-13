@@ -711,8 +711,9 @@
       document.getElementById('specName').textContent = item.name;
       document.getElementById('specNum').textContent = String(cur + 1).padStart(2, '0');
       document.getElementById('topCount').textContent = String(cur + 1).padStart(2, '0');
-      document.querySelector('.meta-badge').innerHTML = `Model <span id="specNum">${String(cur + 1).padStart(2, '0')}</span>/${String(insects.length).padStart(2, '0')}`;
-      document.querySelector('.live').innerHTML = '<i></i> <span id="topCount">' + String(cur + 1).padStart(2, '0') + '</span>/' + String(insects.length).padStart(2, '0');
+      // Update the visible counts without replacing DOM nodes (avoid duplicate IDs)
+      document.querySelector('.meta-badge').setAttribute('data-total', String(insects.length).padStart(2, '0'));
+      document.querySelector('.live').setAttribute('data-total', String(insects.length).padStart(2, '0'));
       renderSlide();
     }
 

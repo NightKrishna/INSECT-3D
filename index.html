@@ -12,15 +12,34 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#04080f;overflow:hidden;height:100vh;font-family:'Space Mono',monospace;color:#dff3ff}
 
-.bg{position:fixed;inset:0;z-index:-2;background:#04080f url('./sci_fi_archive_lab.webp') center/cover no-repeat}
-.bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(2,5,10,.75) 100%)}
-.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.25;background-image:linear-gradient(rgba(125,232,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(125,232,255,.06) 1px,transparent 1px);background-size:42px 42px}
+.bg{position:fixed;inset:0;z-index:-2;background:#04080f url('./sci_fi_archive_lab.webp') center/cover no-repeat;filter:saturate(1.15) brightness(.9)}
+.bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(2,5,10,.8) 100%)}
+.bg-glow{position:fixed;inset:0;z-index:-1;pointer-events:none;mix-blend-mode:screen;opacity:.8;background:
+  radial-gradient(circle at 20% 25%, rgba(125,232,255,.20), transparent 45%),
+  radial-gradient(circle at 82% 20%, rgba(157,78,221,.22), transparent 50%),
+  radial-gradient(circle at 50% 85%, rgba(200,120,255,.18), transparent 55%);
+  animation:glowDrift 14s ease-in-out infinite alternate}
+@keyframes glowDrift{
+  0%{background-position:0% 0%,0% 0%,0% 0%; filter:hue-rotate(0deg)}
+  100%{background-position:6% 4%,-4% 6%,3% -5%; filter:hue-rotate(18deg)}
+}
+.vignette-pulse{position:fixed;inset:0;z-index:-1;pointer-events:none;box-shadow:inset 0 0 220px rgba(2,5,10,.85);animation:vignettePulse 6s ease-in-out infinite}
+@keyframes vignettePulse{0%,100%{box-shadow:inset 0 0 220px rgba(2,5,10,.85)}50%{box-shadow:inset 0 0 260px rgba(10,4,20,.9)}}
+.particle{position:fixed;z-index:0;pointer-events:none;border-radius:50%;background:radial-gradient(circle,rgba(180,230,255,.95),rgba(125,232,255,0) 70%);animation:particleFloat linear infinite}
+@keyframes particleFloat{
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  8%{opacity:1}
+  92%{opacity:1}
+  100%{transform:translateY(-110vh) translateX(var(--drift,20px));opacity:0}
+}
+.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.3;background-image:linear-gradient(rgba(125,232,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(125,232,255,.07) 1px,transparent 1px);background-size:42px 42px;animation:gridPulse 5s ease-in-out infinite}
+@keyframes gridPulse{0%,100%{opacity:.22}50%{opacity:.34}}
 
 /* one slow horizontal scan sweeping the whole screen - the single orchestrated motion cue */
 .scanline{position:fixed;left:0;right:0;height:120px;z-index:1;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(125,232,255,.06),transparent);animation:sweep 7s linear infinite}
 @keyframes sweep{0%{top:-120px}100%{top:100vh}}
 
-model-viewer#mv{position:fixed!important;left:50%!important;top:62%!important;width:min(66vw,720px)!important;height:min(66vh,560px)!important;transform:translate(-50%,-50%);z-index:5;pointer-events:auto;--progress-bar-height:0px;--progress-bar-color:transparent;transition:filter .25s,opacity .2s ease}
+model-viewer#mv{position:fixed!important;left:50%!important;top:62%!important;width:min(66vw,720px)!important;height:min(66vh,560px)!important;transform:translate(-50%,-50%);z-index:5;pointer-events:auto;--progress-bar-height:0px;--progress-bar-color:transparent;transition:filter .15s,opacity .08s ease}
 model-viewer#mv.xray{filter:grayscale(1) sepia(1) hue-rotate(165deg) saturate(4) brightness(1.15) contrast(1.25)}
 
 .base-wrap{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);width:380px;height:180px;z-index:6;pointer-events:none;display:flex;justify-content:center;align-items:flex-end}
@@ -94,8 +113,11 @@ header{position:fixed;top:0;left:0;right:0;height:56px;padding:0 16px;display:fl
 </head>
 <body>
 <div class="bg"></div>
+<div class="bg-glow"></div>
+<div class="vignette-pulse"></div>
 <div class="grid-overlay"></div>
 <div class="scanline"></div>
+<div id="particleLayer"></div>
 
 <model-viewer id="mv"
 src="./assests/butterfly.glb"
@@ -105,6 +127,8 @@ field-of-view="auto"
 exposure="1.1"
 shadow-intensity="1"
 environment-image="https://modelviewer.dev/shared-assets/environments/spruit_sunrise_1k_HDR.hdr"
+loading="eager"
+reveal="auto"
 autoplay
 ></model-viewer>
 
@@ -193,8 +217,8 @@ function frameModel(){
 }
 
 function render(){
-  mv.style.opacity = 0.15;
   mv.src=preloaded[cur] || models[cur];
+  frameModel();
   const d=infoData[cur];
   document.getElementById('counter').textContent=`0${cur+1} / 04`;
   document.getElementById('pName').textContent=d.name; document.getElementById('pSci').textContent=d.sci;
@@ -212,7 +236,7 @@ mv.addEventListener('load', ()=>{
   mv.style.opacity = 1;
   if(tourActive){
     clearTimeout(tourTimeout);
-    tourTimeout = setTimeout(()=>{ if(tourActive) move(1); }, 4000);
+    tourTimeout = setTimeout(()=>{ if(tourActive) move(1); }, 2000);
   }
 });
 
@@ -259,7 +283,7 @@ function toggleTour(){
   btn.classList.toggle('active', tourActive);
   if(tourActive){
     showToast('AUTO TOUR STARTED');
-    tourTimeout = setTimeout(()=>{ if(tourActive) move(1); }, 4000);
+    tourTimeout = setTimeout(()=>{ if(tourActive) move(1); }, 2000);
   } else {
     showToast('AUTO TOUR STOPPED');
     clearTimeout(tourTimeout);
@@ -375,6 +399,27 @@ document.addEventListener('keydown', e=>{
 window.move=function(d){cur=(cur+d+models.length)%models.length;render()}
 window.openInfo=function(){document.getElementById('overlay').style.display='block'}
 window.closeInfo=function(){document.getElementById('overlay').style.display='none'}
+
+// Ambient drifting light particles - purely decorative, spawned once and
+// looped forever via CSS animation (no per-frame JS cost).
+function spawnParticles(count){
+  const layer = document.getElementById('particleLayer');
+  for(let i=0;i<count;i++){
+    const p = document.createElement('div');
+    p.className='particle';
+    const size = 2 + Math.random()*3;
+    p.style.width = size+'px';
+    p.style.height = size+'px';
+    p.style.left = Math.random()*100+'vw';
+    p.style.top = 100 + Math.random()*20 + 'vh';
+    p.style.setProperty('--drift', (Math.random()*80-40)+'px');
+    p.style.animationDuration = (10 + Math.random()*12)+'s';
+    p.style.animationDelay = (Math.random()*10)+'s';
+    layer.appendChild(p);
+  }
+}
+spawnParticles(28);
+
 render();
 preloadModels();
 </script>

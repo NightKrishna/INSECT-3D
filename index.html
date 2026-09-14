@@ -137,7 +137,7 @@ autoplay
   <button class="tool-btn" onclick="toggleFullscreen()"><span class="tip">Fullscreen</span>⛶</button>
   <button class="tool-btn" onclick="captureShot()"><span class="tip">Capture snapshot</span>📷</button>
   <button class="tool-btn" id="tourBtn" onclick="toggleTour()"><span class="tip">Auto tour (hands-free)</span>🔁</button>
-  <button class="tool-btn" id="soundBtn" onclick="toggleSound()"><span class="tip">Ambient lab sound</span>🔊</button>
+  <button class="tool-btn" id="soundBtn" onclick="toggleSound()"><span class="tip">Specimen sound</span>🔊</button>
 </div>
 
 <div class="toast" id="toast">SNAPSHOT SAVED</div>
@@ -204,6 +204,7 @@ function render(){
   document.getElementById('pStat5').textContent=d.order; document.getElementById('pStat6').textContent=d.speed;
   document.getElementById('pStat7').textContent=d.predators; document.getElementById('pStat8').textContent=d.status;
   document.getElementById('pDesc').textContent=d.desc; document.getElementById('pFact').textContent=d.fact;
+  if(soundOn) playCurrentSpecimenSound();
 }
 
 mv.addEventListener('load', ()=>{
@@ -265,35 +266,104 @@ function toggleTour(){
   }
 }
 
-/* ---- FIXED: Ambient lab hum (synthesized in-browser, no audio file needed) ----
-   Previously the gain was set on the AudioContext before it had actually
-   resumed (browsers start contexts suspended until a user gesture confirms
-   it), and the volume/frequencies chosen were too quiet to notice even when
-   running. This version awaits the resume, uses a louder gain, and passes
-   the tones through a lowpass filter for a warmer, audible hum with a
-   smooth fade in/out instead of an abrupt on/off. */
-let audioCtx = null, soundOn = false, gainNode = null;
+/* ---- Per-specimen sound (synthesized in-browser, no audio files needed) ----
+   Each insect gets its own distinct procedural sound instead of one generic
+   ambient hum: a wingbeat buzz for the bee, a soft airy flutter for the
+   butterfly, a low mechanical hum/click for the beetle, and sparse clicks
+   for the mantis. Nodes for the active specimen are (re)built on demand and
+   torn down when you switch specimens or toggle sound off, so only one
+   plays at a time. */
+let audioCtx = null, soundOn = false, activeNodes = [];
+
+function stopActiveNodes(){
+  activeNodes.forEach(n=>{
+    try{ n.stop && n.stop(); }catch(e){}
+    try{ n.disconnect && n.disconnect(); }catch(e){}
+  });
+  activeNodes = [];
+}
+
+// index 0: butterfly - airy, gentle, filtered noise "flutter"
+function playButterfly(){
+  const bufSize = audioCtx.sampleRate * 2;
+  const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufSize;i++) data[i] = (Math.random()*2-1)*0.6;
+  const noise = audioCtx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
+  const filter = audioCtx.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value=900; filter.Q.value=0.7;
+  const lfo = audioCtx.createOscillator(); lfo.frequency.value=4.5;
+  const lfoGain = audioCtx.createGain(); lfoGain.gain.value=500;
+  lfo.connect(lfoGain); lfoGain.connect(filter.frequency);
+  const gain = audioCtx.createGain(); gain.gain.value=0;
+  noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+  noise.start(); lfo.start();
+  gain.gain.linearRampToValueAtTime(0.10, audioCtx.currentTime+0.4);
+  activeNodes.push(noise, lfo, gain);
+}
+
+// index 1: bee - buzzing wingbeat, fast amplitude-modulated tone
+function playBee(){
+  const osc = audioCtx.createOscillator(); osc.type='sawtooth'; osc.frequency.value=220;
+  const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=1200;
+  const trem = audioCtx.createOscillator(); trem.frequency.value=32;
+  const tremGain = audioCtx.createGain(); tremGain.gain.value=0.09;
+  const gain = audioCtx.createGain(); gain.gain.value=0;
+  trem.connect(tremGain); tremGain.connect(gain.gain);
+  osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); trem.start();
+  gain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime+0.4);
+  activeNodes.push(osc, trem, gain);
+}
+
+// index 2: rhino beetle - low mechanical hum with a slow clicking undertone
+function playBeetle(){
+  const osc = audioCtx.createOscillator(); osc.type='sawtooth'; osc.frequency.value=60;
+  const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=300;
+  const gain = audioCtx.createGain(); gain.gain.value=0;
+  osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+  osc.start();
+  gain.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime+0.4);
+  activeNodes.push(osc, gain);
+  const clickInterval = setInterval(()=>{
+    if(!soundOn){ clearInterval(clickInterval); return; }
+    const click = audioCtx.createOscillator(); click.type='square'; click.frequency.value=140;
+    const clickGain = audioCtx.createGain(); clickGain.gain.value=0.08;
+    click.connect(clickGain); clickGain.connect(audioCtx.destination);
+    click.start();
+    clickGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.08);
+    click.stop(audioCtx.currentTime+0.09);
+  }, 900);
+  activeNodes.push({stop:()=>clearInterval(clickInterval), disconnect:()=>{}});
+}
+
+// index 3: praying mantis - sparse, sharp clicks (strike sound), near silent between
+function playMantis(){
+  const clickInterval = setInterval(()=>{
+    if(!soundOn){ clearInterval(clickInterval); return; }
+    const click = audioCtx.createOscillator(); click.type='square'; click.frequency.value=800;
+    const clickGain = audioCtx.createGain(); clickGain.gain.value=0.1;
+    click.connect(clickGain); clickGain.connect(audioCtx.destination);
+    click.start();
+    clickGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.05);
+    click.stop(audioCtx.currentTime+0.06);
+  }, 1600);
+  activeNodes.push({stop:()=>clearInterval(clickInterval), disconnect:()=>{}});
+}
+
+const specimenSounds = [playButterfly, playBee, playBeetle, playMantis];
+
+function playCurrentSpecimenSound(){
+  stopActiveNodes();
+  if(soundOn) specimenSounds[cur]();
+}
 
 async function toggleSound(){
   const btn = document.getElementById('soundBtn');
-  if(!audioCtx){
-    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    const osc1 = audioCtx.createOscillator(); osc1.type='sine'; osc1.frequency.value=90;
-    const osc2 = audioCtx.createOscillator(); osc2.type='sine'; osc2.frequency.value=135;
-    const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=500;
-    gainNode = audioCtx.createGain(); gainNode.gain.value = 0;
-    const lfo = audioCtx.createOscillator(); lfo.frequency.value=0.15;
-    const lfoGain = audioCtx.createGain(); lfoGain.gain.value=0.03;
-    lfo.connect(lfoGain); lfoGain.connect(gainNode.gain);
-    osc1.connect(filter); osc2.connect(filter);
-    filter.connect(gainNode); gainNode.connect(audioCtx.destination);
-    osc1.start(); osc2.start(); lfo.start();
-  }
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
   if(audioCtx.state === 'suspended') await audioCtx.resume();
   soundOn = !soundOn;
-  gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(soundOn ? 0.18 : 0, audioCtx.currentTime + 0.4);
   btn.classList.toggle('active', soundOn);
+  playCurrentSpecimenSound();
 }
 
 document.addEventListener('keydown', e=>{

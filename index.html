@@ -97,13 +97,6 @@ header{position:fixed;top:0;left:0;right:0;height:56px;padding:0 16px;display:fl
 <div class="grid-overlay"></div>
 <div class="scanline"></div>
 
-<!--
-  FIX: no more hardcoded scale / camera-target / camera-orbit-radius per model.
-  Each .glb has a different real-world size, so guessed numbers make some
-  models huge and push them outside the visible frame (that was your bug).
-  Instead we let model-viewer auto-frame the model using its own bounding
-  box every time we swap the src (see render() below).
--->
 <model-viewer id="mv"
 src="./assests/butterfly.glb"
 camera-controls auto-rotate
@@ -186,10 +179,6 @@ const infoData=[
 
 let cur=0; const mv=document.getElementById('mv');
 
-// Preload every model's bytes into memory as soon as the page opens.
-// When switching, if a model is already preloaded we hand model-viewer
-// a ready-made blob URL instead of making it fetch over the network -
-// that's what removes the pause when clicking next/prev.
 const preloaded = new Array(models.length).fill(null);
 function preloadModels(){
   models.forEach((url,i)=>{
@@ -197,9 +186,6 @@ function preloadModels(){
   });
 }
 
-// FIX: instead of forcing a guessed scale, we ask model-viewer to
-// re-frame itself around the model's real bounding box, then snap
-// the camera there instantly (no slow fly-in animation on switch).
 function frameModel(){
   mv.cameraOrbit = '0deg 75deg auto';
   mv.fieldOfView = 'auto';
@@ -220,14 +206,6 @@ function render(){
   document.getElementById('pDesc').textContent=d.desc; document.getElementById('pFact').textContent=d.fact;
 }
 
-// Re-frame every time a new model finishes loading (each glb has a
-// different size, so this has to run per-load, not just once), fade
-// it back in now that it's actually ready, and - if the auto tour is
-// running - only THEN start the countdown to the next switch. This is
-// the fix for the lag: previously the tour advanced on a blind timer
-// regardless of whether the current model had actually finished
-// loading, so a heavier file (like the CT-scanned mantis) would still
-// be parsing when the next switch fired, causing a visible stutter.
 mv.addEventListener('load', ()=>{
   frameModel();
   mv.style.opacity = 1;
@@ -237,13 +215,11 @@ mv.addEventListener('load', ()=>{
   }
 });
 
-// Zoom by nudging the auto-computed orbit radius in or out.
 function zoomStep(factor){
   const o = mv.getCameraOrbit();
   mv.cameraOrbit = `${o.theta}rad ${o.phi}rad ${o.radius*factor}m`;
 }
 
-// X-ray / thermal scan visual mode - a CSS filter toggle, purely visual.
 function toggleXray(){
   mv.classList.toggle('xray');
   document.getElementById('xrayBtn').classList.toggle('active');
@@ -275,10 +251,6 @@ function captureShot(){
   }).catch(()=>showToast('CAPTURE FAILED'));
 }
 
-// Hands-free auto tour - cycles through every specimen. Pacing is driven
-// by the model-viewer 'load' event above (see render/load handler), not
-// a blind setInterval, so it never advances before the current model has
-// actually finished loading - that overlap was the cause of the lag.
 let tourActive = false, tourTimeout = null;
 function toggleTour(){
   const btn = document.getElementById('tourBtn');
@@ -293,30 +265,37 @@ function toggleTour(){
   }
 }
 
-// Ambient lab hum, synthesized in-browser (no audio file needed) so it
-// never breaks if a judge's machine has no internet on demo day.
-let audioCtx = null, soundOn = false;
-function toggleSound(){
+/* ---- FIXED: Ambient lab hum (synthesized in-browser, no audio file needed) ----
+   Previously the gain was set on the AudioContext before it had actually
+   resumed (browsers start contexts suspended until a user gesture confirms
+   it), and the volume/frequencies chosen were too quiet to notice even when
+   running. This version awaits the resume, uses a louder gain, and passes
+   the tones through a lowpass filter for a warmer, audible hum with a
+   smooth fade in/out instead of an abrupt on/off. */
+let audioCtx = null, soundOn = false, gainNode = null;
+
+async function toggleSound(){
   const btn = document.getElementById('soundBtn');
   if(!audioCtx){
     audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    const osc1 = audioCtx.createOscillator(); osc1.type='sine'; osc1.frequency.value=68;
-    const osc2 = audioCtx.createOscillator(); osc2.type='sine'; osc2.frequency.value=101;
-    const gain = audioCtx.createGain(); gain.gain.value = 0.05;
+    const osc1 = audioCtx.createOscillator(); osc1.type='sine'; osc1.frequency.value=90;
+    const osc2 = audioCtx.createOscillator(); osc2.type='sine'; osc2.frequency.value=135;
+    const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=500;
+    gainNode = audioCtx.createGain(); gainNode.gain.value = 0;
     const lfo = audioCtx.createOscillator(); lfo.frequency.value=0.15;
-    const lfoGain = audioCtx.createGain(); lfoGain.gain.value=0.02;
-    lfo.connect(lfoGain); lfoGain.connect(gain.gain);
-    osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+    const lfoGain = audioCtx.createGain(); lfoGain.gain.value=0.03;
+    lfo.connect(lfoGain); lfoGain.connect(gainNode.gain);
+    osc1.connect(filter); osc2.connect(filter);
+    filter.connect(gainNode); gainNode.connect(audioCtx.destination);
     osc1.start(); osc2.start(); lfo.start();
-    audioCtx._gain = gain;
   }
+  if(audioCtx.state === 'suspended') await audioCtx.resume();
   soundOn = !soundOn;
-  audioCtx._gain.gain.value = soundOn ? 0.05 : 0;
-  if(audioCtx.state==='suspended') audioCtx.resume();
+  gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(soundOn ? 0.18 : 0, audioCtx.currentTime + 0.4);
   btn.classList.toggle('active', soundOn);
 }
 
-// Keyboard shortcuts: arrows to switch specimens, space to toggle rotation.
 document.addEventListener('keydown', e=>{
   if(e.key==='ArrowRight') move(1);
   else if(e.key==='ArrowLeft') move(-1);

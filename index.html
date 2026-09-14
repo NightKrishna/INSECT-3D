@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>GENESIS LAB • LIVE BUTTON</title>
+<title>GENESIS LAB • BUTTON INFO</title>
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.3.1/dist/model-viewer.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -12,47 +12,40 @@ body{background:#04080f;color:#eaf4f6;font-family:system-ui,monospace;overflow-x
 .bg::after{content:'';position:absolute;inset:0;background:rgba(4,8,15,.82)}
 header{height:52px;padding:0 12px;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.75);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
 .wrap{padding:8px;display:grid;grid-template-columns:1.1fr.9fr;gap:8px;max-width:1400px;margin:0 auto}
-.card{background:rgba(10,20,35,.96);border:1px solid rgba(125,232,255,.18);border-radius:14px;overflow:hidden;height:560px;display:flex;flex-direction:column;position:relative}
+.card{background:rgba(10,20,35,.96);border:1px solid rgba(125,232,255,.18);border-radius:14px;overflow:hidden;height:580px;display:flex;flex-direction:column}
 .viewer{flex:1;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(400px at 50% 45%,rgba(125,232,255,.18),transparent 70%)}
 model-viewer{width:100%!important;height:100%!important;cursor:grab}
 .nav{position:absolute;bottom:10px;left:10px;right:10px;display:flex;gap:8px;z-index:5}
 .nav button{flex:1;padding:11px;border-radius:999px;background:rgba(0,0,0,.9);border:1px solid #7de8ff;color:#7de8ff;font-weight:800;font-size:11px;cursor:pointer}
+.live-btn{padding:6px 12px;border-radius:999px;background:linear-gradient(90deg,#ff2a2a,#ff5a5a);border:1px solid #ff5a5a;color:#fff;font-size:8px;font-weight:900;cursor:pointer;box-shadow:0 0 12px rgba(255,42,42,.6);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(255,42,42,.5)}50%{box-shadow:0 0 22px rgba(255,42,42,.9)}}
 
-/* LIVE BUTTON */
-.live-btn{padding:6px 12px;border-radius:999px;background:linear-gradient(90deg,#ff2a2a,#ff5a5a);border:1px solid #ff5a5a;color:#fff;font-size:8px;font-weight:900;letter-spacing:1px;cursor:pointer;box-shadow:0 0 12px rgba(255,42,42,.6), inset 0 0 8px rgba(255,255,255,.3);animation:pulseLive 1.5s infinite;position:relative;overflow:hidden}
-.live-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);animation:shineSweep 2s infinite}
-.live-btn:active{transform:scale(.92)}
-@keyframes pulseLive{0%,100%{box-shadow:0 0 10px rgba(255,42,42,.5)} 50%{box-shadow:0 0 22px rgba(255,42,42,.9),0 0 35px rgba(255,42,42,.4)}}
-@keyframes shineSweep{0%{left:-100%} 100%{left:100%}}
-
-/* TEXT LIGHT CHAMAK */
-.info{padding:14px;overflow-y:auto}
+/* BUTTON GRID */
+.info{padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.info::-webkit-scrollbar{width:4px}
+.info::-webkit-scrollbar-thumb{background:rgba(125,232,255,.3);border-radius:99px}
 .label{font-size:7px;letter-spacing:1.5px;color:#7de8ff;font-weight:800}
-.name{font-size:24px;font-weight:900;font-style:italic;margin:4px 0;transition:.3s;cursor:default}
-.name:hover{color:#7de8ff;text-shadow:0 0 12px #7de8ff,0 0 25px #7de8ff;transform:translateX(3px)}
-.desc{font-size:11px;line-height:1.6;margin:10px 0;background:rgba(0,0,0,.35);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.06);transition:.3s;cursor:default;position:relative;overflow:hidden}
-.desc::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(125,232,255,.25),transparent);transition:.6s;pointer-events:none}
-.desc:hover::after{left:100%}
-.desc:hover{border-color:rgba(125,232,255,.4);box-shadow:0 0 15px rgba(125,232,255,.2), inset 0 0 10px rgba(125,232,255,.05);transform:translateY(-2px)}
+.name{font-size:22px;font-weight:900;font-style:italic}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.info-btn{padding:10px 8px;border-radius:10px;background:rgba(0,0,0,.45);border:1px solid rgba(125,232,255,.25);color:#7de8ff;font-size:9px;font-weight:800;letter-spacing:.5px;cursor:pointer;transition:.25s;position:relative;overflow:hidden;text-align:left}
+.info-btn::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(125,232,255,.2),transparent);transition:.5s}
+.info-btn:hover::after{left:100%}
+.info-btn:hover{border-color:#7de8ff;box-shadow:0 0 12px rgba(125,232,255,.4);transform:translateY(-2px) scale(1.02);color:#fff;text-shadow:0 0 8px #7de8ff}
+.info-btn.active{background:linear-gradient(90deg,rgba(125,232,255,.25),rgba(125,232,255,.1));border-color:#7de8ff;color:#fff;box-shadow:0 0 15px rgba(125,232,255,.5), inset 0 0 10px rgba(125,232,255,.15)}
 
-.kv{padding:8px;border-radius:8px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);margin:4px 0;transition:.3s;cursor:default;position:relative;overflow:hidden}
-.kv::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(125,232,255,.15),transparent);transition:.5s}
-.kv:hover::after{left:100%}
-.kv:hover{border-color:#7de8ff;box-shadow:0 0 12px rgba(125,232,255,.3);transform:translateX(4px) scale(1.02)}
-.kv:hover b{color:#7de8ff;text-shadow:0 0 8px #7de8ff}
-
-.behav-box,.status-box{padding:9px;border-radius:9px;transition:.4s;cursor:default;position:relative;overflow:hidden}
-.behav-box{background:rgba(125,232,255,.07);border:1px solid rgba(125,232,255,.15);margin-top:10px}
-.status-box{background:rgba(230,255,84,.06);border:1px solid rgba(230,255,84,.15);margin-top:8px}
-.behav-box:hover{box-shadow:0 0 18px rgba(125,232,255,.25);border-color:#7de8ff;transform:translateY(-2px)}
-.status-box:hover{box-shadow:0 0 18px rgba(230,255,84,.25);border-color:#e6ff54;transform:translateY(-2px)}
-.behav-box::before,.status-box::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:2px;background:linear-gradient(90deg,transparent,#7de8ff,transparent);transition:.6s}
-.behav-box:hover::before,.status-box:hover::before{left:100%}
+/* INFO DISPLAY BOX */
+.display{margin-top:10px;padding:12px;border-radius:12px;background:rgba(0,0,0,.5);border:1px solid rgba(125,232,255,.2);min-height:160px;animation:fadeUp.4s ease;position:relative;overflow:hidden}
+.display::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#7de8ff,transparent);animation:scan 2s linear infinite}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)}}
+@keyframes scan{0%{transform:translateX(-100%)} 100%{transform:translateX(100%)}}
+.display-title{font-size:8px;color:#7de8ff;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.display-text{font-size:11px;line-height:1.6;opacity:.95}
 
 @media(max-width:900px){
 .wrap{grid-template-columns:1fr 1fr;gap:6px;padding:6px}
-.card{height:470px;border-radius:12px}
-.name{font-size:15px}
+.card{height:500px}
+.name{font-size:16px}
+.display-text{font-size:10px}
 }
 </style>
 </head>
@@ -62,9 +55,9 @@ model-viewer{width:100%!important;height:100%!important;cursor:grab}
 
 <div class="wrap">
 <div class="card">
-<div style="padding:12px 14px 8px;display:flex;justify-content:space-between;align-items:center"><div><div class="label">SPECIMEN</div><div id="specName" style="font-size:15px;font-weight:900;font-style:italic">BUTTERFLY</div></div><button class="live-btn" id="liveBtn" onclick="toggleLive()">● LIVE SCAN</button></div>
+<div style="padding:12px 14px 8px;display:flex;justify-content:space-between;align-items:center"><div><div class="label">SPECIMEN</div><div id="specName" style="font-size:14px;font-weight:900;font-style:italic">BUTTERFLY</div></div><button class="live-btn" onclick="mv.autoRotate=!mv.autoRotate">● LIVE</button></div>
 <div class="viewer">
-<model-viewer id="mv" src="./assests/butterfly.glb" camera-controls auto-rotate camera-orbit="0deg 75deg 2.4m" camera-target="0m 0.1m 0m" field-of-view="30deg" exposure="1.2" shadow-intensity="0.5" autoplay></model-viewer>
+<model-viewer id="mv" src="./assests/butterfly.glb" camera-controls auto-rotate camera-orbit="0deg 75deg 2.4m" camera-target="0m 0.1m 0m" field-of-view="30deg" exposure="1.2" autoplay></model-viewer>
 <div class="nav"><button onclick="window.move(-1)">← PREV</button><button onclick="window.move(1)">NEXT →</button></div>
 </div>
 </div>
@@ -72,57 +65,62 @@ model-viewer{width:100%!important;height:100%!important;cursor:grab}
 <div class="card info">
 <div class="label">SPECIMEN PROFILE</div>
 <div id="infoName" class="name">BUTTERFLY</div>
-<div id="infoId" style="font-size:9px;opacity:.6">ID-0001 • Lepidoptera</div>
-<div id="infoSci" style="font-size:10px;color:#e6ff54;font-style:italic;margin:3px 0">Danaus plexippus</div>
-<div id="infoDesc" class="desc">Loading...</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-<div class="kv"><div class="label">HABITAT</div><b id="infoHabitat" style="font-size:10px">Meadows</b></div>
-<div class="kv"><div class="label">DIET</div><b id="infoDiet" style="font-size:10px">Nectar</b></div>
+<div id="infoSci" style="font-size:9px;color:#e6ff54;font-style:italic">Danaus plexippus</div>
+
+<div class="btn-grid">
+<button class="info-btn active" onclick="showInfo('desc',this)">📄 DESCRIPTION</button>
+<button class="info-btn" onclick="showInfo('habitat',this)">🌍 HABITAT</button>
+<button class="info-btn" onclick="showInfo('diet',this)">🍯 DIET</button>
+<button class="info-btn" onclick="showInfo('lifespan',this)">⏳ LIFESPAN</button>
+<button class="info-btn" onclick="showInfo('wingspan',this)">🦋 WINGSPAN</button>
+<button class="info-btn" onclick="showInfo('behav',this)">🧠 BEHAVIOR</button>
+<button class="info-btn" onclick="showInfo('status',this)" style="grid-column:span 2">🛡️ CONSERVATION STATUS</button>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
-<div class="kv"><div class="label">LIFESPAN</div><b id="infoLife" style="font-size:10px">2-6W</b></div>
-<div class="kv"><div class="label">WINGSPAN</div><b id="infoWing" style="font-size:10px">8.9 cm</b></div>
+
+<div class="display" id="displayBox">
+<div class="display-title" id="displayTitle">DESCRIPTION</div>
+<div class="display-text" id="displayText">Loading...</div>
 </div>
-<div class="behav-box"><div class="label">BEHAVIOR & ECOLOGY</div><div id="infoBehav" style="font-size:10px;line-height:1.5;margin-top:5px">...</div></div>
-<div class="status-box"><div class="label" style="color:#e6ff54">CONSERVATION STATUS</div><div id="infoStatus" style="font-size:9px;line-height:1.4;margin-top:5px">...</div></div>
 </div>
 </div>
 
 <script>
 const models=['./assests/butterfly.glb','./assests/bee_converted.glb','./assests/a_rhino_beetle.glb','./assests/mantis_religiosa_-_ct_scan.glb'];
 const data=[
-{name:"BUTTERFLY",id:"ID-0001 • Lepidoptera",sci:"Danaus plexippus • Monarch",desc:"Longest insect migration - 4,800 km USA to Mexico. Microscopic scales create orange-black warning patterns for toxicity from milkweed diet.",habitat:"Tropical Meadows, Gardens",diet:"Nectar, Pollen, Milkweed",lifespan:"2-6 Weeks / 9 Months Migratory",wingspan:"8.9 - 10.2 cm",behav:"Diurnal migrator. Uses sun compass. Caterpillars toxic to birds. Overwinters in fir forests in clusters of thousands. Can taste with feet!",status:"VULNERABLE - 80% decline since 1990s. Protected under ESA 2024."},
-{name:"HONEY BEE",id:"ID-0002 • Hymenoptera",sci:"Apis mellifera • Honey Bee",desc:"Most important pollinator - 75% fruits & veg. Colony of 60k bees pollinates 300M flowers/day. 5 eyes, sees UV patterns.",habitat:"Managed Hives, Orchards",diet:"Nectar & Pollen",lifespan:"6 Weeks Worker / 5 Years Queen",wingspan:"2.1 cm Body",behav:"Waggle dance language - figure-8 tells distance & direction. Hive at 35°C exact. Queen 2000 eggs/day. Honey never spoils!",status:"STABLE Managed - Wild colonies declining 30% yearly due to mites & pesticides."},
-{name:"RHINO BEETLE",id:"ID-0003 • Coleoptera",sci:"Oryctes rhinoceros • Rhino Beetle",desc:"Strongest animal - lifts 850x body weight = human lifting 65 tons. Armor-plated. Nocturnal, crucial decomposer.",habitat:"Tropical Forests, Decaying Logs",diet:"Sap, Decaying Fruit",lifespan:"1-2 Years",wingspan:"5-8 cm + 2cm Horn",behav:"Males horn wrestling like sumo. Larvae decompose wood 1 year. Grubs snoring sounds. Can fly 2km for mates.",status:"LEAST CONCERN - Beneficial decomposer, creates soil. Population stable."},
-{name:"MANTIS RELIGIOSA",id:"ID-0004 • Mantodea",sci:"Mantis religiosa • Praying Mantis",desc:"Ultimate ambush predator - 180° head rotation, stereoscopic vision, strike 50-70ms faster than blink. 2400+ species.",habitat:"Shrublands, Gardens",diet:"Carnivore - Flies, Moths",lifespan:"10-12 Months",wingspan:"5-7 cm Body",behav:"Calculates distance before strike. Female cannibalizes male 13-28%. Ootheca survives -20°C. Belly ear hears bats!",status:"LEAST CONCERN - Excellent pest control. Protected in Germany. Reduces pesticide 40%."}
+{name:"BUTTERFLY",sci:"Danaus plexippus • Monarch",desc:"Monarch butterflies are famous for longest insect migration - 4,800 km USA to Mexico. Wings have microscopic scales creating vibrant orange-black warning patterns for toxicity from milkweed diet.",habitat:"Tropical Meadows, Gardens, Milkweed Fields across North America. Migrates to Oyamel fir forests in Mexico for winter.",diet:"Nectar, Pollen, Milkweed - Caterpillars only eat milkweed which makes them toxic to predators.",lifespan:"2-6 Weeks (summer generation) / 9 Months (migratory generation) - lives 9x longer to complete migration.",wingspan:"8.9 - 10.2 cm wingspan - Females slightly smaller. Bright orange with black veins and white spots.",behav:"Diurnal migrator. Uses sun compass + magnetic field. Caterpillars sequester toxins. Overwinters in clusters of thousands for warmth. Can taste with feet! Males patrol for females.",status:"VULNERABLE - 80% decline since 1990s due to pesticides, milkweed loss, climate change. Protected under ESA 2024. Monarch Watch program planting milkweed."},
+{name:"HONEY BEE",sci:"Apis mellifera • Honey Bee",desc:"Most important pollinator - pollinates 75% fruits & veg we eat. Colony of 60k bees can pollinate 300M flowers per day. Produces honey, wax, propolis. Has 5 eyes and sees UV patterns.",habitat:"Managed Hives, Orchards, Gardens, Meadows - Found on every continent except Antarctica. Prefers areas with diverse flowering plants.",diet:"Nectar & Pollen - Collects nectar to make honey, pollen for protein. Visits 5000 flowers daily. Makes honey by evaporating nectar to 18% water.",lifespan:"6 Weeks (Worker) / 5 Years (Queen) - Queen lays 2000 eggs per day. Workers change jobs as they age: cleaner, nurse, builder, guard, forager.",wingspan:"2.1 cm body length, 4.5 cm wingspan - Wings beat 200 times per second creating buzz. Can fly 6 miles for food and carry 50% body weight.",behav:"Waggle dance language - figure-8 dance tells distance & direction of food. Hive kept at exact 35°C. Queen controls hive with pheromones. Honey never spoils - found edible after 3000 years!",status:"STABLE Managed but Wild declining 30% yearly due to Varroa mites, pesticides, habitat loss. Critical for food security. Beekeepers transport hives for pollination services."},
+{name:"RHINO BEETLE",sci:"Oryctes rhinoceros • Rhino Beetle",desc:"Strongest animal proportionally - lifts 850x body weight = human lifting 65 tons! Armor-plated exoskeleton withstands extreme pressure. Nocturnal, attracted to light. Crucial decomposer despite being coconut pest.",habitat:"Tropical Forests, Decaying Logs, Coconut Plantations across Southeast Asia, Pacific Islands. Larvae live inside rotting wood and compost.",diet:"Sap, Decaying Fruit, Coconut palm - Adults eat sap and fruit. Larvae decompose rotting wood creating rich soil. Important recycler of forest.",lifespan:"1-2 Years total - Larva 6-12 months, Pupa 1 month, Adult 3-6 months. Spends most life as white C-shaped grub inside logs.",wingspan:"5-8 cm body + 2cm horn - Horn only in males. Horn used for wrestling, not piercing. Despite size, can fly 2km searching mates. Sound like helicopter!",behav:"Males horn wrestling like sumo over mates and territory. Larvae make snoring sounds inside logs. Grubs eaten as protein in some countries. Adults attracted to lights at night. Plays dead when threatened.",status:"LEAST CONCERN - Beneficial decomposer, creates soil from dead wood. Population stable. Controlled with Oryctes nudivirus for coconut protection, not pesticides."},
+{name:"MANTIS RELIGIOSA",sci:"Mantis religiosa • Praying Mantis",desc:"Ultimate ambush predator with 180° head rotation, stereoscopic vision, strike speed 50-70ms faster than human blink. 2400+ species, masters of camouflage mimicking leaves, bark, flowers.",habitat:"Shrublands, Gardens, Grasslands, Meadows across Europe, Asia, Africa. Introduced to North America. Loves warm, shrubby areas with lots of insects.",diet:"Carnivore - Flies, Moths, Crickets, Caterpillars, even other mantis. Only predator that eats live prey - won't eat dead insects. Controls crop pests naturally.",lifespan:"10-12 Months - Egg case overwinters, nymphs hatch spring, adults summer, lay eggs fall then die. One generation per year. Ootheca survives -20°C winter.",wingspan:"5-7 cm body length - Females larger. Can fly but prefers walking. Color green or brown for camouflage. Two large compound eyes + 3 simple eyes.",behav:"Calculates distance before lightning strike with spiked arms. Female cannibalizes male 13-28% for extra protein for eggs. Ootheca foam hardens protecting 100-200 eggs. Single ear on belly hears bats and does evasive dive mid-air!",status:"LEAST CONCERN - Excellent pest control, eats crop pests. Protected in Germany - killing fined. Reduces pesticide need 40%. Gardeners buy ootheca for natural pest control."}
 ];
-let cur=0; const mv=document.getElementById('mv'); let liveOn=true;
+let cur=0; const mv=document.getElementById('mv'); let currentInfo='desc';
 function isMobile(){return window.innerWidth < 768}
+
+function showInfo(type,btn){
+  currentInfo=type;
+  document.querySelectorAll('.info-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const d=data[cur];
+  const map={desc:"DESCRIPTION",habitat:"HABITAT",diet:"DIET",lifespan:"LIFESPAN",wingspan:"WINGSPAN",behav:"BEHAVIOR & ECOLOGY",status:"CONSERVATION STATUS"};
+  const box=document.getElementById('displayBox');
+  box.style.animation='none'; box.offsetHeight; box.style.animation=null;
+  document.getElementById('displayTitle').textContent=map[type];
+  document.getElementById('displayText').textContent=d[type];
+}
+
 function render(){
- const d=data[cur]; mv.src=models[cur];
+ const d=data[cur];
+ mv.src=models[cur];
  mv.cameraOrbit=isMobile()? "40deg 75deg 1.05m" : "0deg 75deg 2.4m";
  mv.cameraTarget=isMobile()? "0m 0.15m 0m" : "0m 0.1m 0m";
- mv.fieldOfView=isMobile()? "32deg":"28deg";
  document.getElementById('specName').textContent=d.name;
  document.getElementById('infoName').textContent=d.name;
- document.getElementById('infoId').textContent=d.id;
  document.getElementById('infoSci').textContent=d.sci;
- document.getElementById('infoDesc').textContent=d.desc;
- document.getElementById('infoHabitat').textContent=d.habitat;
- document.getElementById('infoDiet').textContent=d.diet;
- document.getElementById('infoLife').textContent=d.lifespan;
- document.getElementById('infoWing').textContent=d.wingspan;
- document.getElementById('infoBehav').textContent=d.behav;
- document.getElementById('infoStatus').textContent=d.status;
  document.getElementById('counter').textContent=`00${cur+1}/04`;
+ showInfo(currentInfo, document.querySelector(`.info-btn[onclick*="${currentInfo}"]`));
 }
 window.move=function(dir){cur=(cur+dir+models.length)%models.length;render()}
-window.toggleLive=function(){
-  liveOn=!liveOn;
-  const btn=document.getElementById('liveBtn');
-  if(liveOn){ mv.autoRotate=true; btn.textContent="● LIVE SCAN"; btn.style.background="linear-gradient(90deg,#ff2a2a,#ff5a5a)"; }
-  else { mv.autoRotate=false; btn.textContent="○ PAUSED"; btn.style.background="linear-gradient(90deg,#333,#555)"; }
-}
+window.showInfo=showInfo;
+
 let sx=0, startOnModel=false;
 document.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; startOnModel=e.target.closest('model-viewer')!==null; },{passive:true});
 document.addEventListener('touchend',e=>{ if(startOnModel) return; let dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>70) window.move(dx<0?1:-1); },{passive:true});

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>GENESIS LAB • FINAL</title>
+<title>GENESIS LAB • FINAL FIX</title>
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.3.1/dist/model-viewer.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -14,7 +14,8 @@ header{height:52px;padding:0 12px;display:flex;justify-content:space-between;ali
 .wrap{padding:8px;display:grid;grid-template-columns:1.1fr.9fr;gap:8px;max-width:1400px;margin:0 auto}
 .card{background:rgba(10,20,35,.96);border:1px solid rgba(125,232,255,.18);border-radius:14px;overflow:hidden;height:560px;display:flex;flex-direction:column}
 .viewer{flex:1;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(400px at 50% 45%,rgba(125,232,255,.18),transparent 70%)}
-model-viewer{width:100%!important;height:100%!important}
+model-viewer{width:100%!important;height:100%!important;cursor:grab}
+model-viewer:active{cursor:grabbing}
 .nav{position:absolute;bottom:10px;left:10px;right:10px;display:flex;gap:8px;z-index:5}
 .nav button{flex:1;padding:11px;border-radius:999px;background:rgba(0,0,0,.9);border:1px solid #7de8ff;color:#7de8ff;font-weight:800;font-size:11px;cursor:pointer}
 .info{padding:14px;overflow-y:auto}
@@ -99,8 +100,21 @@ function render(){
  document.getElementById('counter').textContent=`00${cur+1}/04`;
 }
 window.move=function(dir){cur=(cur+dir+models.length)%models.length;render()}
-let sx=0; document.addEventListener('touchstart',e=>sx=e.touches[0].clientX);
-document.addEventListener('touchend',e=>{let dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>35) window.move(dx<0?1:-1)});
+
+// FIXED - model par swipe karoge toh change nahi hoga
+let sx=0, startOnModel=false;
+document.addEventListener('touchstart',e=>{
+  if(!e.touches[0]) return;
+  sx=e.touches[0].clientX;
+  startOnModel = e.target.closest('model-viewer')!== null;
+}, {passive:true});
+document.addEventListener('touchend',e=>{
+  if(startOnModel) return;
+  if(!e.changedTouches[0]) return;
+  let dx=e.changedTouches[0].clientX-sx;
+  if(Math.abs(dx)>70) window.move(dx<0?1:-1);
+}, {passive:true});
+
 window.addEventListener('resize',render);
 render();
 </script>
